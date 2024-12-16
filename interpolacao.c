@@ -200,16 +200,22 @@ void leituraADI(char* instancia, arrayInter** interpol, char*** input, char*** o
     fclose(file);  // Fecha o arquivo
 }
 
-static int buscaInterpol(arrayInter* array, int hash_number) {
+static int buscaInterpol(arrayInter* array, int hash_number, int doOutPut) {
     int size = array->totalElementos;
     int low = 0, high = size - 1;
     int iteracoes = 0;
 
     while (low <= high && hash_number >= array->hash_map[low]->hash_value && hash_number <= array->hash_map[high]->hash_value) {
+
         iteracoes++;
         // Cálculo da posição interpolada
-        int pos = low + ((double)(high - low) / (array->hash_map[high]->hash_value - array->hash_map[low]->hash_value) * (hash_number - array->hash_map[low]->hash_value));
+        int value1 = (array->hash_map[high]->hash_value - array->hash_map[low]->hash_value);
+        int value = ((double)(high - low) / (array->hash_map[high]->hash_value - array->hash_map[low]->hash_value));
+        int pos = low + (((double)(high - low) / (array->hash_map[high]->hash_value - array->hash_map[low]->hash_value)) * (hash_number - array->hash_map[low]->hash_value));
 
+        if (low == high) {
+            pos = low;
+        }
         // Verifica se o elemento foi encontrado
         if (array->hash_map[pos]->hash_value == hash_number) {
             // Move para a esquerda até encontrar a primeira ocorrência
@@ -218,7 +224,9 @@ static int buscaInterpol(arrayInter* array, int hash_number) {
                 pos--;
             }
 
-            printf("total de %d iteracoes: ", iteracoes);
+            if (doOutPut) {
+                printf("total de %d iteracoes: ", iteracoes);
+            }
             return pos;
         }
 
@@ -234,9 +242,9 @@ static int buscaInterpol(arrayInter* array, int hash_number) {
     return -1;
 }
 
-static char* getSolution(char* start_game, arrayInter* arr) {
+static char* getSolution(char* start_game, arrayInter* arr, int doOutPut) {
     int hash_number = hashFunc(start_game, arr->primo_hash, MAX_STRING_LENGTH, arr->MOD);
-    int index = buscaInterpol(arr, hash_number);
+    int index = buscaInterpol(arr, hash_number, doOutPut);
 
     if (index == -1) {
         return "Elemento não encontrado!";
@@ -253,7 +261,7 @@ static char* getSolution(char* start_game, arrayInter* arr) {
     return "Elemento não encontrado!";
 }
 
-void execADI(char* instancia, arrayInter* arr, char*** respostas, int *inst_size) {
+void execADI(char* instancia, arrayInter* arr, char*** respostas, int *inst_size, int doOutPut) {
     FILE* file = fopen(instancia, "r");
     if (file == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -295,7 +303,11 @@ void execADI(char* instancia, arrayInter* arr, char*** respostas, int *inst_size
     }
 
     for (int i = 0; i < *inst_size; i++) {
-        puts(getSolution((*respostas)[i], arr));
+        if (doOutPut) {
+            puts(getSolution((*respostas)[i], arr, doOutPut));
+        } else {
+            getSolution((*respostas)[i], arr, doOutPut);
+        }
     }
 
     fclose(file);
